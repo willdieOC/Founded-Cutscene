@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DIM1 // INTERCEPT</title>
+    <title>Founded-Cutscene // DIM1</title>
     <style>
         * {
             box-sizing: border-box;
@@ -15,53 +15,61 @@
         body, html {
             width: 100%;
             height: 100%;
-            background-color: #08020f;
+            background-color: #ffffff; /* Изначально белый экран */
             overflow: hidden;
+            font-family: 'Arial Black', 'Impact', sans-serif;
+        }
+
+        /* Линия под заголовком */
+        .header-line {
+            width: 100%;
+            height: 2px;
+            background-color: #eeeeee;
+            margin-top: 10px;
+        }
+
+        /* Контейнер стартового меню */
+        #init-screen {
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #fff;
+            z-index: 10000;
+            transition: opacity 1s ease-in-out;
+        }
+
+        #init-screen h1 {
+            font-size: 38px;
+            color: #222222;
+            font-weight: 900;
+            letter-spacing: -1px;
+        }
+
+        /* КОНТЕЙНЕР ДЛЯ АКТИВАЦИИ КАТСЦЕНЫ */
+        #cutscene-container {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: #08020f;
+            z-index: 9999;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-family: 'Courier New', Courier, monospace;
         }
 
         /* ЭФФЕКТ СТАРОГО МОНИТОРА */
-        body::before {
+        .crt::before {
             content: " ";
             display: block;
             position: fixed;
             top: 0; left: 0; bottom: 0; right: 0;
             background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(30, 5, 50, 0.15) 50%);
-            z-index: 9999;
+            z-index: 10001;
             background-size: 100% 4px;
             pointer-events: none;
-        }
-
-        /* КНОПКА СТАРТА ДЛЯ ЗВУКА */
-        #start-trigger {
-            padding: 15px 30px;
-            background: transparent;
-            border: 2px dashed #b57cff;
-            color: #b57cff;
-            font-size: 16px;
-            font-family: monospace;
-            cursor: pointer;
-            text-shadow: 0 0 5px #b57cff;
-            box-shadow: 0 0 10px rgba(181, 124, 255, 0.2);
-            transition: 0.3s;
-            z-index: 10000;
-        }
-        #start-trigger:hover {
-            background: #1a052e;
-            box-shadow: 0 0 20px rgba(181, 124, 255, 0.5);
-        }
-
-        /* КОНТЕЙНЕР КАТСЦЕНЫ */
-        #cutscene-container {
-            display: none;
-            width: 100%;
-            height: 100%;
-            position: relative;
-            justify-content: center;
-            align-items: center;
         }
 
         /* ФИОЛЕТОВЫЙ ДЫМ ПО РАМКАМ ЭКРАНА */
@@ -100,13 +108,14 @@
         /* ТЕКСТ СУЩНОСТИ */
         .lore-text {
             color: #dfbfff;
-            font-size: 24px;
+            font-size: 26px;
+            font-family: 'Courier New', Courier, monospace;
             text-align: center;
             max-width: 80%;
             line-height: 1.6;
             text-shadow: 0 0 12px #b57cff, 0 0 25px #6600cc;
             opacity: 0;
-            transition: opacity 2s ease-in-out;
+            transition: opacity 1.5s ease-in-out;
             z-index: 100;
         }
 
@@ -114,17 +123,17 @@
         #roman-counter {
             display: none;
             color: #ffb3ff;
-            font-size: 90px;
+            font-size: 100px;
             font-weight: bold;
             text-shadow: 0 0 20px #ff00ff, 0 0 40px #aa00aa;
             font-family: 'Times New Roman', Times, serif;
             z-index: 100;
         }
 
-        /* ТРЕЩИНЫ НА ЭКРАНЕ */
+        /* ТРЕЩИНЫ */
         .glass-crack {
             position: fixed;
-            background: rgba(0, 0, 0, 0.92);
+            background: rgba(0, 0, 0, 0.95);
             box-shadow: 0 0 8px #b57cff;
             pointer-events: none;
             z-index: 99999;
@@ -133,16 +142,18 @@
 </head>
 <body>
 
-    <button id="start-trigger" onclick="startCutscene()">ПОДКЛЮЧИТЬСЯ К DIM1</button>
+    <div id="init-screen">
+        <h1>Founded-Cutscene</h1>
+        <div class="header-line"></div>
+    </div>
 
-    <div id="cutscene-container">
+    <div id="cutscene-container" class="crt">
         <div class="smoke-border"></div>
         <div class="lore-text" id="lore-field"></div>
         <div id="roman-counter">I</div>
     </div>
 
     <script>
-        // Базовый пул фраз
         const phrases = [
             "Знаешь ли ты насколько этот мир мал?",
             "Сколько прошло сезонов, как я не уйду от вас?",
@@ -153,9 +164,8 @@
         ];
         const secretPhrase = "Ты знаешь? Когда я физически внедрюсь в ваш мир?";
 
-        // Таблица для генерации римских цифр до 90
         function toRoman(num) {
-            const lookup = {XC:90,L:50,XL:40,X:10,IX:9,V:5,MA:4,I:1};
+            const lookup = {XC:90,L:50,XL:40,X:10,IX:9,V:5,IV:4,I:1};
             let roman = '';
             for (let i in lookup) {
                 while (num >= lookup[i]) {
@@ -166,40 +176,45 @@
             return roman;
         }
 
-        // Инициализация катсцены
-        function startCutscene() {
-            document.getElementById('start-trigger').style.display = 'none';
-            document.getElementById('cutscene-container').style.display = 'flex';
+        // Автоматический старт при полной загрузке страницы на GitHub
+        window.onload = function() {
+            setTimeout(() => {
+                const initScreen = document.getElementById('init-screen');
+                initScreen.style.opacity = '0';
+                
+                setTimeout(() => {
+                    initScreen.style.display = 'none';
+                    startCutsceneLogic();
+                }, 1000);
+            }, 1500); // Показываем белый экран 1.5 секунды перед провалом в бездну
+        };
 
-            // Генерируем пепел
+        function startCutsceneLogic() {
             spawnAsh();
-
-            // Воспроизводим жуткий фоновый гул встроенным генератором частот (если нет mp3-файла)
             playDarkAmbient();
 
-            // Выбираем фразу с учетом 0.1% шанса
+            // Выбор фразы (0.1% шанс на секретную)
             const isSecret = Math.random() < 0.001;
             const chosenText = isSecret ? secretPhrase : phrases[Math.floor(Math.random() * phrases.length)];
             
             const textField = document.getElementById('lore-field');
             textField.innerText = chosenText;
 
-            // Таймлайн появления текста
-            setTimeout(() => { textField.style.opacity = 1; }, 500);
+            // Плавно проявляем текст
+            setTimeout(() => { textField.style.opacity = 1; }, 200);
 
-            // Текст горит 4.5 секунды, затем угасает и запускается счетчик
+            // Через 4.5 секунды гасим текст и включаем счетчик
             setTimeout(() => {
                 textField.style.opacity = 0;
                 setTimeout(() => {
                     textField.style.display = 'none';
                     runRomanCounter();
-                }, 2000);
-            }, 5000);
+                }, 1500);
+            }, 4500);
         }
 
-        // Генератор пепла
         function spawnAsh() {
-            for (let i = 0; i < 45; i++) {
+            for (let i = 0; i < 50; i++) {
                 createAshParticle();
             }
         }
@@ -207,65 +222,53 @@
         function createAshParticle() {
             const particle = document.createElement('div');
             particle.classList.add('ash-particle');
-            
-            let size = Math.random() * 5 + 2;
+            let size = Math.random() * 4 + 2;
             particle.style.width = size + 'px';
             particle.style.height = size + 'px';
             particle.style.left = Math.random() * window.innerWidth + 'px';
             
-            let duration = Math.random() * 5 + 4;
+            let duration = Math.random() * 5 + 3;
             particle.style.animationDuration = duration + 's';
             particle.style.animationDelay = '-' + Math.random() * 5 + 's';
 
             document.getElementById('cutscene-container').appendChild(particle);
             
-            // Зацикливаем перерождение частиц
             setTimeout(() => {
                 particle.remove();
                 createAshParticle();
             }, duration * 1000);
         }
 
-        // РИМСКИЙ СЧЕТЧИК (С ДИНАМИЧЕСКИМ УСКОРЕНИЕМ)
         function runRomanCounter() {
             const counterEl = document.getElementById('roman-counter');
             counterEl.style.display = 'block';
 
             let currentNum = 1;
-            let currentDelay = 180; // Начальная задержка между цифрами (мс)
+            let currentDelay = 200; 
 
             function tick() {
                 if (currentNum > 90) {
-                    // Конец отсчета — ломаем экран
                     shatterScreen();
                     return;
                 }
-
                 counterEl.innerText = toRoman(currentNum);
                 currentNum++;
-
-                // Экспоненциально уменьшаем задержку, чтобы счет ускорялся
-                currentDelay = Math.max(8, currentDelay * 0.94); 
-
+                currentDelay = Math.max(6, currentDelay * 0.93); 
                 setTimeout(tick, currentDelay);
             }
-
             tick();
         }
 
-        // ЭТАП 4: ТРЕЩИНЫ И РЕДИРЕКТ НА GOOGLE
         function shatterScreen() {
             document.getElementById('roman-counter').style.display = 'none';
 
-            // Генерируем пачку трещин за мгновение
-            for (let i = 0; i < 35; i++) {
+            for (let i = 0; i < 40; i++) {
                 setTimeout(() => {
                     const crack = document.createElement('div');
                     crack.classList.add('glass-crack');
-                    
                     let x = Math.random() * window.innerWidth;
                     let y = Math.random() * window.innerHeight;
-                    let length = Math.random() * 250 + 50;
+                    let length = Math.random() * 300 + 60;
                     
                     crack.style.left = x + 'px';
                     crack.style.top = y + 'px';
@@ -274,42 +277,26 @@
                     crack.style.transform = `rotate(${Math.random() * 360}deg)`;
                     
                     document.body.appendChild(crack);
-                }, i * 25);
+                }, i * 20);
             }
 
-            // Через 1.5 секунды после деструкции уходим на гугл
             setTimeout(() => {
                 window.location.href = "https://www.google.com";
-            }, 1600);
+            }, 1500);
         }
 
-        // СИНТЕЗАТОР ЗВУКА СУЩНОСТИ
         function playDarkAmbient() {
             try {
                 let context = new (window.AudioContext || window.webkitAudioContext)();
-                
-                // Низкий гул
-                let osc1 = context.createOscillator();
-                let gain1 = context.createGain();
-                osc1.type = 'sine';
-                osc1.frequency.setValueAtTime(55, context.currentTime); // Ля субконтроктавы
-                gain1.gain.setValueAtTime(0.3, context.currentTime);
-                
-                osc1.connect(gain1);
-                gain1.connect(context.destination);
-                osc1.start();
-                
-                // Модуляция космического шума
-                let osc2 = context.createOscillator();
-                let gain2 = context.createGain();
-                osc2.type = 'sawtooth';
-                osc2.frequency.setValueAtTime(110, context.currentTime);
-                gain2.gain.setValueAtTime(0.05, context.currentTime);
-                
-                osc2.connect(gain2);
-                gain2.connect(context.destination);
-                osc2.start();
-            } catch(e) { console.log("Аудио не поддерживается контекстом"); }
+                let osc = context.createOscillator();
+                let gain = context.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(50, context.currentTime);
+                gain.gain.setValueAtTime(0.2, context.currentTime);
+                osc.connect(gain);
+                gain.connect(context.destination);
+                osc.start();
+            } catch(e){}
         }
     </script>
 </body>
